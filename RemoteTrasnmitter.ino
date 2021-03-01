@@ -24,28 +24,19 @@ char  Buff[20];
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
-  LoRa.setPins(pin_CE, pin_RST, pin_D0);
   
+  //it's mandatory to configure pins before start
+  LoRa.setPins(pin_CE, pin_RST, pin_D0);
+
   Serial.begin(9600);
   while (!Serial);
 
   Serial.println("LoRa Sender");
 
-  if (!LoRa.begin(915E6))
+
+ while(!LoRa.begin(915E6))
   {
-    Serial.println("Starting LoRa failed!\n reset the chip\n");
-  }
-
-}
-
-void loop() {
-
-
-while (1)
-{
- if (!LoRa.begin(915E6))
-  {
-    Serial.println("Starting LoRa failed!");
+    Serial.println("initialization FAILED");
     digitalWrite(LED_BUILTIN, HIGH);
     delay(50);
     digitalWrite(LED_BUILTIN, LOW);
@@ -58,26 +49,22 @@ while (1)
     delay(500);
       
   }
-  else
-  {
-    Serial.println("successfully initialized");
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(100);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(100);
-  }
-  delay(100);  
+
+  
+  Serial.println("initialization SUCCESSFUL");
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(300);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(300);
+  
 }
 
-
-
-
-
-
+void loop() 
+{
   for(uint8_t i = 0; i < 10; i++)
   {
     XValue += analogRead(Xaxis);

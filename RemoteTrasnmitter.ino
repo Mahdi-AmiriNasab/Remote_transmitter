@@ -6,6 +6,17 @@
 #include "string.h"
 #include "pins_arduino.h"
 
+/*************Functions*************/
+void blink (uint32_t del, uint32_t times)
+{
+  for(uint32_t i = 0; i < times; i++)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(del);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(del);
+  }
+}
 
 /*************Deffinitions***************/
 #define avr_dem   10
@@ -24,7 +35,7 @@ char  Buff[20];
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
-  
+
   //it's mandatory to configure pins before start
   LoRa.setPins(pin_CE, pin_RST, pin_D0);
 
@@ -33,50 +44,30 @@ void setup()
 
   Serial.println("LoRa Sender");
 
-
- while(!LoRa.begin(915E6))
+  while(!LoRa.begin(433000000))
   {
     Serial.println("initialization FAILED");
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(50);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(50);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(50);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(50);
+    blink(50, 2);
 
     delay(500);
       
   }
 
-  
+  //set the TX power to maximum
+  LoRa.setTxPowerMAX();
+
+  LoRa.setFrequency(433000000);
+  LoRa.setSignalBandwidth(500000);
+  LoRa.setSpreadingFactor(8);
+
   Serial.println("initialization SUCCESSFUL");
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(300);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(300);
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(300);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(300);
+  blink(300, 2);
   
 }
 
 void loop() 
 {
-  for(uint8_t i = 0; i < 10; i++)
-  {
-    XValue += analogRead(Xaxis);
-    YValue += analogRead(Yaxis);
-  }
-
-  XValue /= avr_dem;
-  YValue /= avr_dem;
-
-  
  sprintf(Buff, " XValue: %d, YValue: %d\n", XValue, YValue);
- 
 
   // make the packet ready
   Serial.print("Sending packet: ");
@@ -85,9 +76,10 @@ void loop()
   LoRa.beginPacket();
   LoRa.print((char *)Buff);
   LoRa.endPacket();
-
   Serial.print((char *)Buff);
-
+  blink(20, 5);
+  
   delay(500);
+
 }
 

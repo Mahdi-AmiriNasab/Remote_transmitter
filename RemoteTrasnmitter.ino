@@ -29,7 +29,7 @@ void blink (uint32_t del, uint32_t times)
 int Xaxis = A0;    // select the input pin for the Xaxis Joystick
 int Yaxis = A1;    // select the input pin for the Yazis Joystick
 uint32_t XValue = 0, YValue = 0;    // analog values of axis accordingly 
-char  Buff[20];
+char  Buff[200];
 
 /*************Initializations*************/
 void setup()

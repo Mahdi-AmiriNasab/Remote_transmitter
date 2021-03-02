@@ -64,22 +64,27 @@ void setup()
   blink(300, 2);
   
 }
-
+char commands[][10] = {"FORWARD","BACKWARD","UP", "DOWN", "RIGHT", "LEFT"};
+uint8_t i = 0;
 void loop() 
 {
- sprintf(Buff, " XValue: %d, YValue: %d\n", XValue, YValue);
+  if(i > 5)
+    i = 0;
+
+ //sprintf(Buff, " XValue: %d, YValue: %d\n", XValue, YValue);
 
   // make the packet ready
   Serial.print("Sending packet: ");
-
+  strcpy(Buff, commands[i]);
   // send packet
   LoRa.beginPacket();
-  LoRa.print((char *)Buff);
+  LoRa.println((char *)Buff);
   LoRa.endPacket();
   Serial.print((char *)Buff);
   blink(20, 5);
-  
+
   delay(500);
+  i++;
 
 }
 

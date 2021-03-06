@@ -27,13 +27,13 @@ void send_packet(char **to_send_data_ptr)
 
   // send packet
 
-  LoRa.beginPacket();
+  LoRa.beginPacket(25);
   LoRa.println(*to_send_data_ptr);
   LoRa.endPacket();
   Serial.println(*to_send_data_ptr);
   
   *to_send_data_ptr = '\0'; // clear the command
-  blink(20, 3);
+  blink(50, 3);
 }
 
 /*************Deffinitions***************/

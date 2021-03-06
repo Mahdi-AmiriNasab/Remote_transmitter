@@ -1,5 +1,10 @@
 #include <PS2X_lib.h>  //for v1.6
 
+#define PIN_Clock       30
+#define PIN_Command     31
+#define PIN_Attention   32
+#define PIN_Data        33
+
 PS2X ps2x; // create PS2 Controller Class
 
 //right now, the library does NOT support hot pluggable controllers, meaning 
@@ -10,11 +15,11 @@ byte type = 0;
 byte vibrate = 0;
 
 void setup(){
- Serial.begin(57600);
+ Serial.begin(9600);
 
  //CHANGES for v1.6 HERE!!! **************PAY ATTENTION*************
   
- error = ps2x.config_gamepad(13,11,10,12, true, true);   //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
+ error = ps2x.config_gamepad(PIN_Clock, PIN_Command, PIN_Attention ,PIN_Data ,true, true);   //setup pins and settings:  GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
  
  if(error == 0){
    Serial.println("Found Controller, configured successful");
@@ -147,6 +152,10 @@ void loop(){
          Serial.println("R2 pressed");
         if(ps2x.Button(PSB_GREEN))
          Serial.println("Triangle pressed");
+        // else
+        // {
+        //   Serial.println("some thing changed");
+        // }
          
     }   
          

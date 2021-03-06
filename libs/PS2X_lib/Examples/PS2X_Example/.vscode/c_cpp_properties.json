@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Program Files (x86)\\Arduino\\tools\\**",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
+                "C:\\Users\\Mahdi\\Documents\\Arduino\\libraries\\arduino-LoRa-master\\src\\**",
+                "C:\\Users\\Mahdi\\Documents\\Arduino\\libraries\\PS2X_lib\\**",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}

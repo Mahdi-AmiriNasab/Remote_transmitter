@@ -27,9 +27,9 @@ void send_packet(char **to_send_data_ptr)
 
   // send packet
 
-  // LoRa.beginPacket();
-  // LoRa.println(to_send_data_ptr);
-  // LoRa.endPacket();
+  LoRa.beginPacket();
+  LoRa.println(*to_send_data_ptr);
+  LoRa.endPacket();
   Serial.println(*to_send_data_ptr);
   
   *to_send_data_ptr = '\0'; // clear the command
@@ -196,13 +196,29 @@ void loop()
     //considered as up
     sprintf(Buff, "FORWARD=%d",stick_ly);
     cmd_ptr = Buff;
+    BTN_FORWARD = button_pressed;
   }
   else if(stick_ly > 127 + 20)
   {
     //considered as down
     sprintf(Buff, "BACKWARD=%d",stick_ly);
     cmd_ptr = Buff; 
+    BTN_BACKWARD = button_pressed;
   }
+  else
+  {
+    if(BTN_BACKWARD == button_pressed)
+    {
+      BTN_BACKWARD = button_released;
+      cmd_ptr = "_BACKWARD";
+    }
+    if(BTN_FORWARD == button_pressed)
+    {
+      BTN_FORWARD = button_released;
+      cmd_ptr = "_FORWARD";
+    }
+  }
+  
   
 
   //right stick comparison
@@ -211,12 +227,14 @@ void loop()
     //considered as right 
     sprintf(Buff, "RIGHT=%d",stick_rx);
     cmd_ptr = Buff;
+    BTN_RIGHT = button_pressed;
   }
   else if(stick_rx < 127 - 20)
   { 
     //considered as left
     sprintf(Buff, "LEFT=%d",stick_rx);
     cmd_ptr = Buff;
+    BTN_LEFT = button_pressed;
   }
   else if(stick_ry < 127 - 20)
   {
@@ -227,6 +245,19 @@ void loop()
   {
     //considered as up
     
+  }
+  else
+  {
+    if(BTN_RIGHT == button_pressed)
+    {
+      BTN_RIGHT = button_released;
+      cmd_ptr = "_RIGHT";
+    }
+    if(BTN_LEFT == button_pressed)
+    {
+      BTN_LEFT = button_released;
+      cmd_ptr = "_LEFT";
+    }
   }
   
 

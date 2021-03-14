@@ -8,7 +8,8 @@
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                 "C:\\Users\\Mahdi\\Documents\\Arduino\\libraries\\**",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include"
+                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\avr\\include",
+                "C:/Program Files (x86)/Arduino/hardware/arduino"
             ],
             "defines": [
                 "_DEBUG",

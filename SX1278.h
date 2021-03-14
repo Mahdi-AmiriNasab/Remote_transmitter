@@ -260,14 +260,8 @@ typedef struct {
 class SX1278Class
 {
 	public:
-	//hardware
 	SX1278Class(int pin_ChipSelect, int pin_Reset, int pin_D0);
 	void SX1278_hw_init(SX1278_hw_t * hw);
-	void SX1278_hw_SetNSS(SX1278_hw_t * hw, int value);
-	void SX1278_hw_Reset(SX1278_hw_t * hw);
-	void SX1278_hw_SPICommand(SX1278_hw_t * hw, uint8_t cmd);
-	uint8_t SX1278_hw_SPIReadByte(SX1278_hw_t * hw);
-	int SX1278_hw_GetDIO0(SX1278_hw_t * hw);
 
 	//logic
 
@@ -305,12 +299,23 @@ class SX1278Class
 
 	void SX1278_standby(SX1278_t * module);
 	void SX1278_sleep(SX1278_t * module);
+	
+	int SX1278_receive(SX1278_t * module, uint8_t length, uint32_t timeout);
 
 
 	private:
 	int _pin_CE;
 	int _pin_RST;
 	int _pin_D0;
+
+	//hardware
+	
+	void SX1278_hw_SetNSS(SX1278_hw_t * hw, int value);
+	void SX1278_hw_Reset(SX1278_hw_t * hw);
+	void SX1278_hw_SPICommand(SX1278_hw_t * hw, uint8_t cmd);
+	uint8_t SX1278_hw_SPIReadByte(SX1278_hw_t * hw);
+	int SX1278_hw_GetDIO0(SX1278_hw_t * hw);
+
 	
 	
 };

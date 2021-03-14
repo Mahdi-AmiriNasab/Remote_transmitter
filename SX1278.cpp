@@ -13,6 +13,24 @@ _pin_D0(pin_D0)
 {
 }
 
+ void SX1278Class::SX1278_hw_SetNSS(SX1278_hw_t * hw, int value) {
+	//HAL_GPIO_WritePin(hw->nss.port, hw->nss.pin,(value == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	digitalWrite(_pin_CE,(value == 1) ? HIGH: LOW);
+}
+
+ void SX1278Class::SX1278_hw_Reset(SX1278_hw_t * hw) {
+	SX1278_hw_SetNSS(hw, 1);
+	//HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_RESET);
+	digitalWrite(_pin_RST, LOW);
+
+	delay(1);
+	
+	//HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_SET);
+	digitalWrite(_pin_RST, HIGH);
+	
+	delay(50);
+}
+
  void SX1278Class::SX1278_hw_init(SX1278_hw_t * hw) {
 	SX1278_hw_SetNSS(hw, 1);
 	 SPI.begin();
@@ -21,40 +39,28 @@ _pin_D0(pin_D0)
 	digitalWrite(_pin_RST, HIGH);
 }
 
- void SX1278Class::SX1278_hw_SetNSS(SX1278_hw_t * hw, int value) {
-	HAL_GPIO_WritePin(hw->nss.port, hw->nss.pin,(value == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
- void SX1278Class::SX1278_hw_Reset(SX1278_hw_t * hw) {
-	SX1278_hw_SetNSS(hw, 1);
-	HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_RESET);
-
-	HAL_Delay(1);
-
-	HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_SET);
-
-	HAL_Delay(50);
-}
-
  void SX1278Class::SX1278_hw_SPICommand(SX1278_hw_t * hw, uint8_t cmd) {
 	SX1278_hw_SetNSS(hw, 0);
-	HAL_SPI_Transmit(hw->spi, &cmd, 1, 1000);
-	while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
+	// HAL_SPI_Transmit(hw->spi, &cmd, 1, 1000);
+	// while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
+	SPI.transfer(cmd);
 }
 
- uint8_t SX1278_hw_SPIReadByte(SX1278_hw_t * hw) {
+ uint8_t SX1278Class::SX1278_hw_SPIReadByte(SX1278_hw_t * hw) {
 	uint8_t txByte = 0x00;
 	uint8_t rxByte = 0x00;
 
 	SX1278_hw_SetNSS(hw, 0);
-	HAL_SPI_TransmitReceive(hw->spi, &txByte, &rxByte, 1, 1000);
-	while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
+	// HAL_SPI_TransmitReceive(hw->spi, &txByte, &rxByte, 1, 1000);
+	// while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
+	rxByte = SPI.transfer(txByte);
 	return rxByte;
 }
 
 
  int SX1278Class::SX1278_hw_GetDIO0(SX1278_hw_t * hw) {
-	return (HAL_GPIO_ReadPin(hw->dio0.port, hw->dio0.pin) == GPIO_PIN_SET);
+	//return (HAL_GPIO_ReadPin(hw->dio0.port, hw->dio0.pin) == GPIO_PIN_SET);
+	return (digitalRead(_pin_D0) == HIGH);
 }
 
 //////////////////////////////////
@@ -114,7 +120,7 @@ void SX1278Class::SX1278_defaultConfig(SX1278_t * module) {
 void SX1278Class::SX1278_config(SX1278_t * module, uint8_t frequency, uint8_t power,
 		uint8_t LoRa_Rate, uint8_t LoRa_BW) {
 	SX1278_sleep(module); //Change modem mode Must in Sleep mode
-	HAL_Delay(15);
+	delay(15);
 
 	SX1278_entryLoRa(module);
 	//SX1278_SPIWrite(module, 0x5904); //?? Change digital regulator form 1.6V to 1.47V: see errata note
@@ -208,7 +214,7 @@ int SX1278Class::SX1278_LoRaEntryRx(SX1278_t * module, uint8_t length, uint32_t 
 			SX1278_defaultConfig(module);
 			return 0;
 		}
-		HAL_Delay(1);
+		delay(1);
 	}
 }
 
@@ -283,7 +289,7 @@ int SX1278Class::SX1278_LoRaTxPacket(SX1278_t * module, uint8_t* txBuffer, uint8
 			SX1278_defaultConfig(module);
 			return 0;
 		}
-		HAL_Delay(1);
+		delay(1);
 	}
 }
 

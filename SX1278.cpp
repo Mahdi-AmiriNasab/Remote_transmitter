@@ -70,7 +70,7 @@ _pin_D0(pin_D0)
 
  int SX1278Class::SX1278_hw_GetDIO0(SX1278_hw_t * hw) {
 	//return (HAL_GPIO_ReadPin(hw->dio0.port, hw->dio0.pin) == GPIO_PIN_SET);
-	return (digitalRead(hw->dio0.pin) == HIGH);
+	return digitalRead(hw->dio0.pin);
 }
 
 uint8_t SX1278Class::readRegister(uint8_t address)
@@ -287,7 +287,8 @@ int SX1278Class::SX1278_LoRaEntryTx(SX1278_t * module, uint8_t length, uint32_t 
 	SX1278_defaultConfig(module); //setting base parameter
 	SX1278_SPIWrite(module, REG_LR_PADAC, 0x87);	//Tx for 20dBm
 	SX1278_SPIWrite(module, LR_RegHopPeriod, 0x00); //RegHopPeriod NO FHSS
-	SX1278_SPIWrite(module, REG_LR_DIOMAPPING1, 0x41); //DIO0=01, DIO1=00,DIO2=00, DIO3=01
+	//SX1278_SPIWrite(module, REG_LR_DIOMAPPING1, 0x41); //DIO0=01, DIO1=00,DIO2=00, DIO3=01
+	SX1278_SPIWrite(module, REG_LR_DIOMAPPING1, 0x40); //DIO0=01 on tx done
 	SX1278_clearLoRaIrq(module);
 	SX1278_SPIWrite(module, LR_RegIrqFlagsMask, 0xF7); //Open TxDone interrupt
 	SX1278_SPIWrite(module, LR_RegPayloadLength, length); //RegPayloadLength 21byte

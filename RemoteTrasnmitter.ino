@@ -210,9 +210,15 @@ void loop()
   message_length = strlen(dt);				
   ret = sxlora.SX1278_LoRaEntryTx(&SX1278, message_length, 2000);	
   Serial.print("data to send is: "); Serial.println(dt);
+  
+  sprintf(Buff,"Packet send loading: %s", ret ? "LOADED" : "NOT LOADED");
+  Serial.println(Buff);
+
   ret = sxlora.SX1278_LoRaTxPacket(&SX1278, (uint8_t *) dt, message_length,2000);	
+  sprintf(Buff,"Packet send status: %s", ret ? "SENT" : "NOT SENT");
+  Serial.println(Buff);
   delay(2000);
-  blink(10, 5);			
+ 
 }
 
 /*

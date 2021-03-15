@@ -52,7 +52,6 @@ _pin_D0(pin_D0)
 }
 
  void SX1278Class::SX1278_hw_SPICommand(SX1278_hw_t * hw, uint8_t cmd) {
-	SX1278_hw_SetNSS(hw, 0);
 	// HAL_SPI_Transmit(hw->spi, &cmd, 1, 1000);
 	// while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
 	SPI.transfer(cmd);
@@ -62,7 +61,6 @@ _pin_D0(pin_D0)
 	uint8_t txByte = 0x00;
 	uint8_t rxByte = 0x00;
 
-	SX1278_hw_SetNSS(hw, 0);
 	// HAL_SPI_TransmitReceive(hw->spi, &txByte, &rxByte, 1, 1000);
 	// while (HAL_SPI_GetState(hw->spi) != HAL_SPI_STATE_READY);
 	rxByte = SPI.transfer(txByte);

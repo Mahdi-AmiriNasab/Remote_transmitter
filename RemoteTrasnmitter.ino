@@ -182,7 +182,12 @@ void setup()
 	sxlora.SX1278_begin(&SX1278, SX1278_433MHZ, SX1278_POWER_20DBM, SX1278_LORA_SF_8,SX1278_LORA_BW_500KHZ,255);
 	bool response = 0;
   response = sxlora.SX1278_LoRaEntryTx(&SX1278, 45, 1000);
-
+  
+  if(response)
+    {Serial.print("response received: ");Serial.println(response); }
+  else
+    Serial.println("response NOT received");
+    
   uint8_t version = sxlora.SX1278_CheckVersion(&SX1278);
   Serial.print("version is:");Serial.println(version);
   if(version == 18)

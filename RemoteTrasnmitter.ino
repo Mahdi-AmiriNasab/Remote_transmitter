@@ -1,6 +1,6 @@
 /**************private includes***********/
 #include <SPI.h>
-//#include "LoRa.h"
+#include "LoRa.h"
 #include "SX1278.h"
 #include "stdio.h"
 #include "stdint.h"
@@ -10,8 +10,8 @@
 
 /*************Deffinitions***************/
 //LoRa pins
-#define pin_CE          53
-#define pin_RST         49
+#define pin_CE          7
+#define pin_RST         4
 #define pin_D0          2
 
 //Dual shock comtroller pins
@@ -143,33 +143,34 @@ void setup()
   //it's mandatory to configure pins before start
   //LoRa.setPins(pin_CE, pin_RST, pin_D0);
 
-  if(remote.config_gamepad(PIN_Clock, PIN_Command, PIN_Attention ,PIN_Data ,true, true) != 0)
-  {
-    Serial.println("No controller found!\n reset the chip");
-    while(1)
-      blink(1000, 1);
-  }
+
 
   Serial.begin(9600);
   while (!Serial);
 
-  Serial.println("LoRa Sender");
-
-  while(/*!LoRa.begin(433000000)*/1)
+  if(remote.config_gamepad(PIN_Clock, PIN_Command, PIN_Attention ,PIN_Data ,true, true) != 0)
   {
-    Serial.println("initialization FAILED");
-    blink(1000, 1);
-      
+    Serial.println("No controller found!\n reset the chip");
+    if(1)
+      blink(1000, 1);
   }
 
-  //set the TX power to maximum
-//  LoRa.setTxPowerMAX();
-//
-//  LoRa.setFrequency(433000000);
-//  LoRa.setSignalBandwidth(100000);
-//  LoRa.setSpreadingFactor(8);
+  Serial.println("LoRa Sender");
 
-  
+  // while(!LoRa.begin(433000000))
+  // {
+  //   Serial.println("initialization FAILED");
+  //   blink(1000, 1);
+      
+  // }
+  // Serial.println("initialization ok");
+  // //set the TX power to maximum
+  // LoRa.setTxPowerMAX();
+  // LoRa.setFrequency(433000000);
+  // LoRa.setSignalBandwidth(100000);
+  // LoRa.setSpreadingFactor(8);
+
+
 	SX1278_hw.dio0.pin = pin_D0;
 	SX1278_hw.nss.pin = pin_CE;
 	SX1278_hw.reset.pin = pin_RST;
@@ -179,16 +180,37 @@ void setup()
 	sxlora.SX1278_hw_init(SX1278.hw);
 	
 	sxlora.SX1278_begin(&SX1278, SX1278_433MHZ, SX1278_POWER_20DBM, SX1278_LORA_SF_8,SX1278_LORA_BW_500KHZ,255);
-	int ret = sxlora.SX1278_LoRaEntryTx(&SX1278, 45, 1000);
+	bool response = 0;
+  response = sxlora.SX1278_LoRaEntryTx(&SX1278, 45, 1000);
+
+  uint8_t version = sxlora.SX1278_CheckVersion(&SX1278);
+  Serial.print("version is:");Serial.println(version);
+  if(version == 18)
+    Serial.println("initialization SUCCESSFUL");
+  else
+    Serial.println("initialization Failed");
   
-  Serial.println("initialization SUCCESSFUL");
-  blink(300, 2);
 }
 char commands[][10] = {"FORWARD","BACKWARD","UP", "DOWN", "RIGHT", "LEFT"};
 char uncommands[][10] = {"_FORWARD","_BACKWARD","_UP", "_DOWN", "_RIGHT", "_LEFT"};
 char *cmd_ptr = '\0';
 uint8_t stick_rx,  stick_ry,  stick_lx,  stick_ly;
 uint8_t i = 0;
+
+char dt[10] = "SINA1";
+uint16_t  message_length = 0;
+int ret = 0;
+void loop() 
+{	
+  message_length = strlen(dt);				
+  ret = sxlora.SX1278_LoRaEntryTx(&SX1278, message_length, 2000);	
+  Serial.print("data to send is: "); Serial.println(dt);
+  ret = sxlora.SX1278_LoRaTxPacket(&SX1278, (uint8_t *) dt, message_length,2000);	
+  delay(2000);
+  blink(10, 5);			
+}
+
+/*
 void loop() 
 {
   Start:
@@ -418,4 +440,4 @@ void loop()
     send_packet(&cmd_ptr);
   
 }
-
+*/

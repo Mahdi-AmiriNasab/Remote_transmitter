@@ -301,6 +301,8 @@ class SX1278Class
 	void SX1278_sleep(SX1278_t * module);
 	
 	int SX1278_receive(SX1278_t * module, uint8_t length, uint32_t timeout);
+	uint8_t SX1278_CheckVersion(SX1278_t * module);
+
 
 
 	private:
@@ -316,6 +318,10 @@ class SX1278Class
 	uint8_t SX1278_hw_SPIReadByte(SX1278_hw_t * hw);
 	int SX1278_hw_GetDIO0(SX1278_hw_t * hw);
 
+	uint8_t SX1278Class::readRegister(uint8_t address);
+	void SX1278Class::writeRegister(uint8_t address, uint8_t value);
+	uint8_t SX1278Class::singleTransfer(uint8_t address, uint8_t value);
+	
 	
 	
 };

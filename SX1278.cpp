@@ -11,22 +11,33 @@ _pin_CE(pin_ChipSelect),
 _pin_RST(pin_Reset),
 _pin_D0(pin_D0)
 {
+	pinMode(_pin_CE, OUTPUT);
+	pinMode(_pin_RST, OUTPUT);
+	pinMode(_pin_RST, INPUT);
+
+	Serial.begin(9600);
+	Serial.print("chip select is:"); Serial.println(_pin_CE);
+	Serial.print("reset is:"); Serial.println(_pin_RST);
+	Serial.print("D0 is:"); Serial.println(_pin_D0);
 }
 
  void SX1278Class::SX1278_hw_SetNSS(SX1278_hw_t * hw, int value) {
 	//HAL_GPIO_WritePin(hw->nss.port, hw->nss.pin,(value == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 	digitalWrite(_pin_CE,(value == 1) ? HIGH: LOW);
+	//digitalWrite(hw->nss.pin,(value == 1) ? HIGH: LOW);
 }
 
  void SX1278Class::SX1278_hw_Reset(SX1278_hw_t * hw) {
 	SX1278_hw_SetNSS(hw, 1);
 	//HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_RESET);
 	digitalWrite(_pin_RST, LOW);
+	//digitalWrite(hw->reset.pin, LOW);
 
 	delay(1);
 	
 	//HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_SET);
 	digitalWrite(_pin_RST, HIGH);
+	//digitalWrite(hw->reset.pin, HIGH);
 	
 	delay(50);
 }
@@ -37,6 +48,7 @@ _pin_D0(pin_D0)
 	 SPI.beginTransaction(SPISettings(LORA_DEFAULT_SPI_FREQUENCY, MSBFIRST, SPI_MODE0));
 	//HAL_GPIO_WritePin(hw->reset.port, hw->reset.pin, GPIO_PIN_SET);
 	digitalWrite(_pin_RST, HIGH);
+	//digitalWrite(hw->reset.pin, HIGH);
 }
 
  void SX1278Class::SX1278_hw_SPICommand(SX1278_hw_t * hw, uint8_t cmd) {
@@ -60,7 +72,33 @@ _pin_D0(pin_D0)
 
  int SX1278Class::SX1278_hw_GetDIO0(SX1278_hw_t * hw) {
 	//return (HAL_GPIO_ReadPin(hw->dio0.port, hw->dio0.pin) == GPIO_PIN_SET);
-	return (digitalRead(_pin_D0) == HIGH);
+	return (digitalRead(hw->dio0.pin) == HIGH);
+}
+
+uint8_t SX1278Class::readRegister(uint8_t address)
+{
+  return singleTransfer(address & 0x7f, 0x00);
+}
+
+void SX1278Class::writeRegister(uint8_t address, uint8_t value)
+{
+  singleTransfer(address | 0x80, value);
+}
+
+uint8_t SX1278Class::singleTransfer(uint8_t address, uint8_t value)
+{
+  uint8_t response;
+
+  digitalWrite(_pin_CE, LOW);
+
+  SPI.beginTransaction(SPISettings(LORA_DEFAULT_SPI_FREQUENCY, MSBFIRST, SPI_MODE0));
+  SPI.transfer(address);
+  response = SPI.transfer(value);
+  SPI.endTransaction();
+
+  digitalWrite(_pin_CE, HIGH);
+
+  return response;
 }
 
 //////////////////////////////////
@@ -69,6 +107,7 @@ _pin_D0(pin_D0)
 
 uint8_t SX1278Class::SX1278_SPIRead(SX1278_t * module, uint8_t addr) {
 	uint8_t tmp;
+	SX1278_hw_SetNSS(module->hw, 0);
 	SX1278_hw_SPICommand(module->hw, addr);
 	tmp = SX1278_hw_SPIReadByte(module->hw);
 	SX1278_hw_SetNSS(module->hw, 1);
@@ -342,3 +381,9 @@ uint8_t SX1278Class::SX1278_RSSI(SX1278_t * module) {
 	temp = 127 - (temp >> 1);	//127:Max RSSI
 	return temp;
 }
+
+uint8_t SX1278Class::SX1278_CheckVersion(SX1278_t * module)
+ {
+	return SX1278_SPIRead(module, REG_LR_VERSION);
+	//return readRegister(REG_LR_VERSION);
+ }

@@ -53,16 +53,16 @@ void send_packet(char **to_send_data_ptr)
 #define COMMAND1            PSB_L3          
 #define COMMAND2            PSB_R3          
 #define CMD_START           PSB_START       
-#define CMD_UP              PSB_PAD_UP      //lift fork
+#define COMMAND4            PSB_PAD_UP      
 #define COMMAND5            PSB_PAD_RIGHT   
-#define CMD_DOWN            PSB_PAD_DOWN    //lower the fork
+#define COMMAND6            PSB_PAD_DOWN    
 #define COMMAND7            PSB_PAD_LEFT    
-#define COMMAND8            PSB_L2          
-#define COMMAND9            PSB_R2          
-#define COMMAND10           PSB_L1          
-#define CMD_HRN             PSB_R1          //horn          
+#define CMD_DOWN_1          PSB_L2     //lower the fork    
+#define CMD_DOWN_2          PSB_R2     //lower the fork   
+#define CMD_UP_1            PSB_L1     //lift fork     
+#define CMD_UP_2            PSB_R1     //lift fork              
 #define COMMAND12           PSB_GREEN       
-#define COMMAND13           PSB_RED         
+#define CMD_HRN             PSB_RED         //horn
 #define COMMAND14           PSB_BLUE        
 #define COMMAND15           PSB_PINK        
 #define COMMAND16           PSB_TRIANGLE    
@@ -266,23 +266,23 @@ void loop()
 
   // if(remote.NewButtonState())
   // {
-    if(remote.Button(CMD_UP) && BTN_DOWN == button_released)
+    if((remote.Button(CMD_UP_1)) && (remote.Button(CMD_UP_2)) && (BTN_DOWN == button_released))
     {
       BTN_UP = button_pressed;
       cmd_ptr = "UP";
     }
-    else if(remote.ButtonReleased(CMD_UP))
+    else if((remote.ButtonReleased(CMD_UP_1)) || remote.ButtonReleased(CMD_UP_2))
     {
       BTN_UP = button_released;
       cmd_ptr = "_UP";
     }
 
-    else if(remote.Button(CMD_DOWN)  && BTN_UP == button_released)
+    else if((remote.Button(CMD_DOWN_1)) && (remote.Button(CMD_DOWN_2)) &&  BTN_UP == button_released)
     {
       BTN_DOWN = button_pressed;
       cmd_ptr = "DOWN";
     }
-    else if(remote.ButtonReleased(CMD_DOWN))
+    else if((remote.ButtonReleased(CMD_DOWN_1)) || remote.ButtonReleased(CMD_DOWN_2))
     {
       BTN_DOWN = button_released;
       cmd_ptr = "_DOWN";

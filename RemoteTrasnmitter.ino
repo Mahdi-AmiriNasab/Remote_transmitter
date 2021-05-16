@@ -108,8 +108,9 @@ char  Buff[200];
 
 typedef enum
 {
-  button_pressed = 1,
-  button_released
+  button_released,
+  button_pressed
+  
 }button_status;
 
 
@@ -126,6 +127,8 @@ button_status BTN_RIGHT;
 button_status BTN_FORWARD;
 button_status BTN_BACKWARD;
 
+button_status BTN_ROT_CLW;
+button_status BTN_ROT_CCW;
 
 
 /*************Initializations*************/
@@ -149,7 +152,7 @@ void setup()
 
   Serial.println("LoRa Sender");
 
-  if(!LoRa.begin(433000000))
+  while(!LoRa.begin(433000000))
   {
     Serial.println("initialization FAILED");
     blink(1000, 1);
@@ -160,7 +163,7 @@ void setup()
   LoRa.setTxPowerMAX();
 
   LoRa.setFrequency(433000000);
-  LoRa.setSignalBandwidth(500000);
+  LoRa.setSignalBandwidth(100000);
   LoRa.setSpreadingFactor(8);
 
   Serial.println("initialization SUCCESSFUL");
@@ -191,14 +194,14 @@ void loop()
   {
     //considered as left
   }
-  else if(stick_ly < 127 - 20)
+  else if(stick_ly < 127 - 20 && BTN_BACKWARD == button_released)
   {
     //considered as up
     sprintf(Buff, "FORWARD=%d",stick_ly);
     cmd_ptr = Buff;
     BTN_FORWARD = button_pressed;
   }
-  else if(stick_ly > 127 + 20)
+  else if(stick_ly > 127 + 20 && BTN_FORWARD == button_released)
   {
     //considered as down
     sprintf(Buff, "BACKWARD=%d",stick_ly);
@@ -222,14 +225,14 @@ void loop()
   
 
   //right stick comparison
-  if(stick_rx > 127 + 20)
+  if(stick_rx > 127 + 20 && BTN_LEFT == button_released)
   {
     //considered as right 
     sprintf(Buff, "RIGHT=%d",stick_rx);
     cmd_ptr = Buff;
     BTN_RIGHT = button_pressed;
   }
-  else if(stick_rx < 127 - 20)
+  else if(stick_rx < 127 - 20 && BTN_RIGHT == button_released)
   { 
     //considered as left
     sprintf(Buff, "LEFT=%d",stick_rx);
@@ -263,7 +266,7 @@ void loop()
 
   // if(remote.NewButtonState())
   // {
-    if(remote.Button(CMD_UP))
+    if(remote.Button(CMD_UP) && BTN_DOWN == button_released)
     {
       BTN_UP = button_pressed;
       cmd_ptr = "UP";
@@ -274,7 +277,7 @@ void loop()
       cmd_ptr = "_UP";
     }
 
-    else if(remote.Button(CMD_DOWN))
+    else if(remote.Button(CMD_DOWN)  && BTN_UP == button_released)
     {
       BTN_DOWN = button_pressed;
       cmd_ptr = "DOWN";
@@ -286,26 +289,37 @@ void loop()
     }
 
     //clockwise rotation
-    else if(remote.Button(CMD_ROT_CLW)) 
+    else if(remote.Button(CMD_ROT_CLW)
+    && BTN_FORWARD == button_released
+    && BTN_BACKWARD == button_released
+    && BTN_RIGHT == button_released
+    && BTN_LEFT == button_released
+    && BTN_ROT_CCW == button_released
+    ) 
     {
-      BTN_DOWN = button_pressed;
+      BTN_ROT_CLW = button_pressed;
       cmd_ptr = "ROT_CLW";
     }
     else if(remote.ButtonReleased(CMD_ROT_CLW))
     {
-      BTN_DOWN = button_released;
+      BTN_ROT_CLW = button_released;
       cmd_ptr = "_ROT_CLW";
     }
 
     //counter clockwise rotation
-    else if(remote.Button(CMD_ROT_CCW))
+    else if(remote.Button(CMD_ROT_CCW)
+    && BTN_FORWARD == button_released
+    && BTN_BACKWARD == button_released
+    && BTN_RIGHT == button_released
+    && BTN_LEFT == button_released
+    && BTN_ROT_CLW == button_released)
     {
-      BTN_DOWN = button_pressed;
+      BTN_ROT_CCW = button_pressed;
       cmd_ptr = "ROT_CCW";
     }
     else if(remote.ButtonReleased(CMD_ROT_CCW))
     {
-      BTN_DOWN = button_released;
+      BTN_ROT_CCW = button_released;
       cmd_ptr = "_ROT_CCW";
     }
 
@@ -322,7 +336,7 @@ void loop()
     }
 
     //stop button
-    else if(remote.Button(CMD_STP))
+    if(remote.Button(CMD_STP))
     {
       BTN_DOWN = button_pressed;
       cmd_ptr = "STOP";

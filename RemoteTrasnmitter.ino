@@ -38,37 +38,40 @@ void send_packet(char **to_send_data_ptr)
 
 /*************Deffinitions***************/
 //LoRa pins
-#define pin_CE          53
-#define pin_RST         49
+#define pin_CE          3  //53 in Mega Board  //MSS
+#define pin_RST         4  //49 in Mega Board
 #define pin_D0          2
 
 //Dual shock comtroller pins
-#define PIN_Clock       30
-#define PIN_Command     31
-#define PIN_Attention   32
-#define PIN_Data        33
+#define PIN_Clock       8  //30  in Mega Board
+#define PIN_Command     6  //31  in Mega Board
+#define PIN_Attention   7  //32  in Mega Board
+#define PIN_Data        5  //33  in Mega Board
 
-//Commands
+//************************* Commands ****************************
 #define CMD_SELECT          PSB_SELECT      
 #define COMMAND1            PSB_L3          
 #define COMMAND2            PSB_R3          
 #define CMD_START           PSB_START       
-#define COMMAND4            PSB_PAD_UP      
+#define CMD_UP              PSB_PAD_UP      
 #define COMMAND5            PSB_PAD_RIGHT   
-#define COMMAND6            PSB_PAD_DOWN    
+#define CMD_DOWN            PSB_PAD_DOWN    
 #define COMMAND7            PSB_PAD_LEFT    
-#define CMD_DOWN_1          PSB_L2     //lower the fork    
-#define CMD_DOWN_2          PSB_R2     //lower the fork   
-#define CMD_UP_1            PSB_L1     //lift fork     
-#define CMD_UP_2            PSB_R1     //lift fork              
-#define COMMAND12           PSB_GREEN       
+
+#define CMD_LIFTL           PSB_L1          //lift fork
+#define CMD_LIFTR           PSB_R1          //lift fork 
+#define CMD_DOWNL           PSB_L2          //lower the fork
+#define CMD_DOWNR           PSB_R2          //lower the fork  
+     
+//#define COMMAND12           PSB_GREEN       
 #define CMD_HRN             PSB_RED         //horn
-#define COMMAND14           PSB_BLUE        
-#define COMMAND15           PSB_PINK        
-#define COMMAND16           PSB_TRIANGLE    
-#define CMD_ROT_CLW         PSB_CIRCLE      //clockwise rotation
+//#define COMMAND14           PSB_BLUE        
+//#define COMMAND15           PSB_PINK        
+//#define COMMAND16           PSB_TRIANGLE    
+//#define CMD_ROT_CLW         PSB_CIRCLE      //clockwise rotation
+#define CMD_HRN             PSB_CIRCLE
 #define CMD_STP             PSB_CROSS       //fully stops the system       
-#define CMD_ROT_CCW         PSB_SQUARE      //counter clockwise rotation
+//#define CMD_ROT_CCW         PSB_SQUARE      //counter clockwise rotation
 
 //sticks
 #define CMD_RIGHT_X         PSS_RX            
@@ -76,24 +79,25 @@ void send_packet(char **to_send_data_ptr)
 #define CMD_LEFT_X          PSS_LX            
 #define CMD_LEFT_X          PSS_LY            
 
-//These are analog buttons
+//******************* These are analog buttons *******************
 // #define CMD_RIGHT           PSAB_PAD_RIGHT 
 // #define CMD_UP              PSAB_PAD_UP
 // #define CMD_DOWN            PSAB_PAD_DOWN
 // #define CMD_LEFT            PSAB_PAD_LEFT
 
-// #define CMD_FORWARD         PSAB_L2
-// #define CMD_BACKWARD        PSAB_R2
-#define COMMAND30           PSAB_L1
-#define COMMAND31           PSAB_R1
-#define COMMAND32           PSAB_GREEN
-#define COMMAND33           PSAB_RED
-#define COMMAND34           PSAB_BLUE
-#define COMMAND35           PSAB_PINK
-#define COMMAND36           PSAB_TRIANGLE
-#define COMMAND37           PSAB_CIRCLE
-#define COMMAND38           PSAB_CROSS
-#define COMMAND39           PSAB_SQUARE
+#define CMD_FORWARD         PSAB_L2
+#define CMD_BACKWARD        PSAB_R2
+//#define COMMAND30           PSAB_L1
+//#define COMMAND31           PSAB_R1
+
+//#define COMMAND32           PSAB_GREEN
+//#define COMMAND33           PSAB_RED
+//#define COMMAND34           PSAB_BLUE
+//#define COMMAND35           PSAB_PINK
+//#define COMMAND36           PSAB_TRIANGLE
+//#define COMMAND37           PSAB_CIRCLE
+//#define COMMAND38           PSAB_CROSS
+//#define COMMAND39           PSAB_SQUARE
 
 
 
@@ -116,8 +120,8 @@ typedef enum
 
 button_status BTN_CROSS;
 button_status BTN_CIRCLE;
-button_status BTN_SQUARE;
-button_status BTN_TRIANGLE;
+//button_status BTN_SQUARE;
+//button_status BTN_TRIANGLE;
 
 button_status BTN_UP;
 button_status BTN_DOWN;
@@ -127,8 +131,8 @@ button_status BTN_RIGHT;
 button_status BTN_FORWARD;
 button_status BTN_BACKWARD;
 
-button_status BTN_ROT_CLW;
-button_status BTN_ROT_CCW;
+//button_status BTN_ROT_CLW;
+//button_status BTN_ROT_CCW;
 
 
 /*************Initializations*************/
@@ -185,7 +189,7 @@ void loop()
   stick_rx = remote.Analog(PSS_RX);
   stick_ry = remote.Analog(PSS_RY);
 
-  //left stick comparison
+  //left stick comparison ****************************
   if(stick_lx > 127 + 20)
   {
     //considered as right 
@@ -222,7 +226,7 @@ void loop()
     }
   }
   
-  
+  //***********************************************************
 
   //right stick comparison
   if(stick_rx > 127 + 20 && BTN_LEFT == button_released)
@@ -263,33 +267,56 @@ void loop()
     }
   }
   
-
+//******************** Lift & Downer Forks ********************
   // if(remote.NewButtonState())
   // {
-    if((remote.Button(CMD_UP_1)) && (remote.Button(CMD_UP_2)) && (BTN_DOWN == button_released))
+
+     if(remote.Button(CMD_LIFTL) && BTN_DOWN == button_released)
     {
       BTN_UP = button_pressed;
       cmd_ptr = "UP";
     }
-    else if((remote.ButtonReleased(CMD_UP_1)) || remote.ButtonReleased(CMD_UP_2))
+    else if(remote.ButtonReleased(CMD_LIFTL))
     {
       BTN_UP = button_released;
       cmd_ptr = "_UP";
     }
 
-    else if((remote.Button(CMD_DOWN_1)) && (remote.Button(CMD_DOWN_2)) &&  BTN_UP == button_released)
+    else if(remote.Button(CMD_DOWNL)  && BTN_UP == button_released)
     {
       BTN_DOWN = button_pressed;
       cmd_ptr = "DOWN";
     }
-    else if((remote.ButtonReleased(CMD_DOWN_1)) || remote.ButtonReleased(CMD_DOWN_2))
+    else if(remote.ButtonReleased(CMD_DOWNL))
     {
       BTN_DOWN = button_released;
       cmd_ptr = "_DOWN";
     }
+ //************************   
+     if(remote.Button(CMD_LIFTR) && BTN_DOWN == button_released)
+    {
+      BTN_UP = button_pressed;
+      cmd_ptr = "UP";
+    }
+    else if(remote.ButtonReleased(CMD_LIFTR))
+    {
+      BTN_UP = button_released;
+      cmd_ptr = "_UP";
+    }
 
+    else if(remote.Button(CMD_DOWNR)  && BTN_UP == button_released)
+    {
+      BTN_DOWN = button_pressed;
+      cmd_ptr = "DOWN";
+    }
+    else if(remote.ButtonReleased(CMD_DOWNR))
+    {
+      BTN_DOWN = button_released;
+      cmd_ptr = "_DOWN";
+    }
+//*************************************************************
     //clockwise rotation
-    else if(remote.Button(CMD_ROT_CLW)
+/*    else if(remote.Button(CMD_ROT_CLW)
     && BTN_FORWARD == button_released
     && BTN_BACKWARD == button_released
     && BTN_RIGHT == button_released
@@ -305,36 +332,38 @@ void loop()
       BTN_ROT_CLW = button_released;
       cmd_ptr = "_ROT_CLW";
     }
-
-    //counter clockwise rotation
-    else if(remote.Button(CMD_ROT_CCW)
-    && BTN_FORWARD == button_released
-    && BTN_BACKWARD == button_released
-    && BTN_RIGHT == button_released
-    && BTN_LEFT == button_released
-    && BTN_ROT_CLW == button_released)
-    {
-      BTN_ROT_CCW = button_pressed;
-      cmd_ptr = "ROT_CCW";
-    }
-    else if(remote.ButtonReleased(CMD_ROT_CCW))
-    {
-      BTN_ROT_CCW = button_released;
-      cmd_ptr = "_ROT_CCW";
-    }
-
+*/
+//    //counter clockwise rotation
+//    else if(remote.Button(CMD_ROT_CCW)
+//    && BTN_FORWARD == button_released
+//    && BTN_BACKWARD == button_released
+//    && BTN_RIGHT == button_released
+//    && BTN_LEFT == button_released
+//    && BTN_ROT_CLW == button_released)
+//    {
+//      BTN_ROT_CCW = button_pressed;
+//      cmd_ptr = "ROT_CCW";
+//    }
+//    else if(remote.ButtonReleased(CMD_ROT_CCW))
+//    {
+//      BTN_ROT_CCW = button_released;
+//      cmd_ptr = "_ROT_CCW";
+//    }
+//***************************************************
     //horn
     else if(remote.Button(CMD_HRN))
     {
-      BTN_DOWN = button_pressed;
+      //BTN_DOWN = button_pressed;
+      BTN_CIRCLE = button_pressed;
       cmd_ptr = "HORN";
     }
     else if(remote.ButtonReleased(CMD_HRN))
     {
-      BTN_DOWN = button_released;
+      //BTN_DOWN = button_released;
+      BTN_CIRCLE = button_released;
       cmd_ptr = "_HORN";
     }
-
+//************************ STOP ***********************
     //stop button
     if(remote.Button(CMD_STP))
     {
@@ -346,7 +375,8 @@ void loop()
       BTN_DOWN = button_released;
       cmd_ptr = "_STOP";
     }
-
+    
+//*****************************************************
 
     // else if(remote.Button(CMD_LEFT))
     // {
@@ -368,28 +398,33 @@ void loop()
     //   BTN_RIGHT = button_released;
     //   cmd_ptr = "_RIGHT";
     // }
-    // else if(remote.Button(CMD_FORWARD))
-    // {
-    //   BTN_FORWARD = button_pressed;
-    //   cmd_ptr = "FORWARD";
-    // }
-    
-    // else if(remote.ButtonReleased(CMD_FORWARD))
-    // {
-    //   BTN_FORWARD = button_released;
-    //   cmd_ptr = "_FORWARD";
-    // }
 
-    // else if(remote.Button(CMD_BACKWARD))
-    // {
-    //   BTN_BACKWARD = button_pressed;
-    //   cmd_ptr = "BACKWARD";
-    // }
-    // else if(remote.ButtonReleased(CMD_BACKWARD))
-    // {
-    //   BTN_BACKWARD = button_released;
-    //   cmd_ptr = "_BACKWARD";
-    // }
+//**************************** MOVEMENT ****************************
+    
+     else if(remote.Button(CMD_FORWARD))
+     {
+       BTN_FORWARD = button_pressed;
+       cmd_ptr = "FORWARD";
+     }
+    
+     else if(remote.ButtonReleased(CMD_FORWARD))
+     {
+       BTN_FORWARD = button_released;
+       cmd_ptr = "_FORWARD";
+     }
+
+     else if(remote.Button(CMD_BACKWARD))
+     {
+       BTN_BACKWARD = button_pressed;
+       cmd_ptr = "BACKWARD";
+     }
+     else if(remote.ButtonReleased(CMD_BACKWARD))
+     {
+       BTN_BACKWARD = button_released;
+       cmd_ptr = "_BACKWARD";
+     }
+
+//*****************************************************************
 
     // make the packet ready
     // else
@@ -404,4 +439,3 @@ void loop()
     send_packet(&cmd_ptr);
   
 }
-

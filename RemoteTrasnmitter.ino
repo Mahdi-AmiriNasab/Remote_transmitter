@@ -204,6 +204,7 @@ void loop()
     //considered as up
     sprintf(tmp_bf, "FORWARD=%d",stick_ly);
     cmd_ptr = tmp_bf;
+    memset(Buff, 0, sizeof(Buff));
     strcat(Buff, cmd_ptr);
     cmd_ptr = Buff;
     BTN_FORWARD = button_pressed;
@@ -213,6 +214,7 @@ void loop()
     //considered as down
     sprintf(tmp_bf, "BACKWARD=%d",stick_ly);
     cmd_ptr = tmp_bf;
+    memset(Buff, 0, sizeof(Buff));
     strcat(Buff, cmd_ptr);
     cmd_ptr = Buff;
     BTN_BACKWARD = button_pressed;
@@ -224,6 +226,7 @@ void loop()
       BTN_BACKWARD = button_released;
       sprintf(tmp_bf, "_BACKWARD");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -232,6 +235,7 @@ void loop()
       BTN_FORWARD = button_released;
       sprintf(tmp_bf, "_FORWARD");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -245,6 +249,7 @@ void loop()
     //considered as right 
     sprintf(tmp_bf, "RIGHT=%d",stick_rx);
     cmd_ptr = tmp_bf;
+    memset(Buff, 0, sizeof(Buff));
     strcat(Buff, cmd_ptr);
     cmd_ptr = Buff;
     BTN_RIGHT = button_pressed;
@@ -254,6 +259,7 @@ void loop()
     //considered as left
     sprintf(tmp_bf, "LEFT=%d",stick_rx);
     cmd_ptr = tmp_bf;
+    memset(Buff, 0, sizeof(Buff));
     strcat(Buff, cmd_ptr);
     cmd_ptr = Buff;
     BTN_LEFT = button_pressed;
@@ -275,6 +281,7 @@ void loop()
       BTN_RIGHT = button_released;
       sprintf(tmp_bf, "_RIGHT");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -283,6 +290,7 @@ void loop()
       BTN_LEFT = button_released;
       sprintf(tmp_bf, "_LEFT");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -301,6 +309,7 @@ void loop()
       BTN_UP = button_pressed;
       sprintf(tmp_bf, "UP");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
       
@@ -310,6 +319,7 @@ void loop()
       BTN_UP = button_released;
       sprintf(tmp_bf, "_UP");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -323,6 +333,7 @@ void loop()
       BTN_DOWN = button_pressed;
       sprintf(tmp_bf, "DOWN");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -331,6 +342,7 @@ void loop()
       BTN_DOWN = button_released;
       sprintf(tmp_bf, "_DOWN");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -340,6 +352,7 @@ void loop()
       BTN_UP = button_pressed;
       sprintf(tmp_bf, "UP");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -348,6 +361,7 @@ void loop()
       BTN_UP = button_released;
       sprintf(tmp_bf, "_UP");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -357,6 +371,7 @@ void loop()
       BTN_DOWN = button_pressed;
       sprintf(tmp_bf, "DOWN");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }
@@ -365,6 +380,7 @@ void loop()
       BTN_DOWN = button_released;
       sprintf(tmp_bf, "_DOWN");
       cmd_ptr = tmp_bf;
+      memset(Buff, 0, sizeof(Buff));
       strcat(Buff, cmd_ptr);
       cmd_ptr = Buff;
     }

@@ -103,10 +103,10 @@ GNU General Public License for more details.
 #define PSB_PAD_RIGHT   0x0020
 #define PSB_PAD_DOWN    0x0040
 #define PSB_PAD_LEFT    0x0080
-#define PSB_L2          0x0100
-#define PSB_R2          0x0200
-#define PSB_L1          0x0400
-#define PSB_R1          0x0800
+#define PSB_L2          0x0100 //8
+#define PSB_R2          0x0200 //9
+#define PSB_L1          0x0400 //10
+#define PSB_R1          0x0800 //11
 #define PSB_GREEN       0x1000
 #define PSB_RED         0x2000
 #define PSB_BLUE        0x4000
@@ -201,6 +201,3 @@ boolean en_Pressures;
 };
 
 #endif
-
-
-

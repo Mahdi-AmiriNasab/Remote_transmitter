@@ -1,4 +1,4 @@
-/**************private includes***********/
+/**************private includes***********//*Final Version - 2022.02.27*/
 //#include <SPI.h>
 #include "LoRa.h"
 #include "stdio.h"
@@ -7,6 +7,13 @@
 #include "pins_arduino.h"
 #include "PS2X_lib.h"  //for v1.6
 
+/***************Variables****************/
+int Xaxis = A0;    // select the input pin for the Xaxis Joystick
+int Yaxis = A1;    // select the input pin for the Yazis Joystick
+uint32_t XValue = 0, YValue = 0;    // analog values of axis accordingly 
+char  Buff[200];
+char tmp_bf[30];
+
 PS2X remote; //create PS2 Controller Class
 
 /*************Functions*************/
@@ -14,10 +21,10 @@ void blink (uint32_t del, uint32_t times)
 {
   for(uint32_t i = 0; i < times; i++)
   {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(del);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(del);
+	digitalWrite(LED_BUILTIN, HIGH);
+	delay(del);
+	digitalWrite(LED_BUILTIN, LOW);
+	delay(del);
   }
 }
 
@@ -32,15 +39,18 @@ void send_packet(char **to_send_data_ptr)
   LoRa.endPacket();
   Serial.println(*to_send_data_ptr);
   
+  memset(Buff, 0, sizeof(Buff));
+  memset(tmp_bf, 0, sizeof(tmp_bf));
+
   *to_send_data_ptr = '\0'; // clear the command
   blink(50, 3);
 }
 
 /*************Deffinitions***************/
 //LoRa pins
-#define pin_CE          3  //53 in Mega Board  //MSS
-#define pin_RST         4  //49 in Mega Board
-#define pin_D0          2
+#define pin_CE          10  //53 in Mega Board  //MSS
+#define pin_RST         9  //49 in Mega Board
+#define pin_D0          2  //47 in Mega Board
 
 //Dual shock comtroller pins
 #define PIN_Clock       8  //30  in Mega Board
@@ -62,7 +72,7 @@ void send_packet(char **to_send_data_ptr)
 #define CMD_LIFTR           PSB_R1          //lift fork 
 #define CMD_DOWNL           PSB_L2          //lower the fork
 #define CMD_DOWNR           PSB_R2          //lower the fork  
-     
+	 
 //#define COMMAND12           PSB_GREEN       
 #define CMD_HRN             PSB_RED         //horn
 //#define COMMAND14           PSB_BLUE        
@@ -71,7 +81,7 @@ void send_packet(char **to_send_data_ptr)
 //#define CMD_ROT_CLW         PSB_CIRCLE      //clockwise rotation
 #define CMD_HRN             PSB_CIRCLE
 #define CMD_STP             PSB_CROSS       //fully stops the system       
-//#define CMD_ROT_CCW         PSB_SQUARE      //counter clockwise rotation
+#define CMD_PROXY           PSB_SQUARE      //Proxy sensor reset
 
 //sticks
 #define CMD_RIGHT_X         PSS_RX            
@@ -104,12 +114,7 @@ void send_packet(char **to_send_data_ptr)
 
 
 
-/***************Variables****************/
-int Xaxis = A0;    // select the input pin for the Xaxis Joystick
-int Yaxis = A1;    // select the input pin for the Yazis Joystick
-uint32_t XValue = 0, YValue = 0;    // analog values of axis accordingly 
-char tmp_bf[30];
-char  Buff[200];
+
 
 typedef enum
 {
@@ -121,7 +126,7 @@ typedef enum
 
 button_status BTN_CROSS;
 button_status BTN_CIRCLE;
-//button_status BTN_SQUARE;
+button_status BTN_SQUARE;
 //button_status BTN_TRIANGLE;
 
 button_status BTN_UP;
@@ -147,9 +152,9 @@ void setup()
 
   if(remote.config_gamepad(PIN_Clock, PIN_Command, PIN_Attention ,PIN_Data ,true, true) != 0)
   {
-    Serial.println("No controller found!\n reset the chip");
-    while(1)
-      blink(1000, 1);
+	Serial.println("No controller found!\n reset the chip");
+	while(1)
+	  blink(1000, 1);
   }
 
   Serial.begin(9600);
@@ -159,9 +164,9 @@ void setup()
 
   while(!LoRa.begin(433000000))
   {
-    Serial.println("initialization FAILED");
-    blink(1000, 1);
-      
+	Serial.println("initialization FAILED");
+	blink(1000, 1);
+	  
   }
 
   //set the TX power to maximum
@@ -180,6 +185,9 @@ char uncommands[][10] = {"_FORWARD","_BACKWARD","_UP", "_DOWN", "_RIGHT", "_LEFT
 char *cmd_ptr = '\0';
 uint8_t stick_rx,  stick_ry,  stick_lx,  stick_ly;
 uint8_t i = 0;
+
+//**********************************************************************************************
+//**********************************************************************************************
 void loop() 
 {
   Start:
@@ -190,218 +198,25 @@ void loop()
   stick_rx = remote.Analog(PSS_RX);
   stick_ry = remote.Analog(PSS_RY);
 
-  //left stick comparison ****************************
-  if(stick_lx > 127 + 20)
-  {
-    //considered as right 
-  }
-  else if(stick_lx < 127 - 20)
-  {
-    //considered as left
-  }
-  else if(stick_ly < 127 - 20 && BTN_BACKWARD == button_released)
-  {
-    //considered as up
-    sprintf(tmp_bf, "FORWARD=%d",stick_ly);
-    cmd_ptr = tmp_bf;
-    memset(Buff, 0, sizeof(Buff));
-    strcat(Buff, cmd_ptr);
-    cmd_ptr = Buff;
-    BTN_FORWARD = button_pressed;
-  }
-  else if(stick_ly > 127 + 20 && BTN_FORWARD == button_released)
-  {
-    //considered as down
-    sprintf(tmp_bf, "BACKWARD=%d",stick_ly);
-    cmd_ptr = tmp_bf;
-    memset(Buff, 0, sizeof(Buff));
-    strcat(Buff, cmd_ptr);
-    cmd_ptr = Buff;
-    BTN_BACKWARD = button_pressed;
-  }
-  else
-  {
-    if(BTN_BACKWARD == button_pressed)
-    {
-      BTN_BACKWARD = button_released;
-      sprintf(tmp_bf, "_BACKWARD");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-    if(BTN_FORWARD == button_pressed)
-    {
-      BTN_FORWARD = button_released;
-      sprintf(tmp_bf, "_FORWARD");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-  }
-  
-  //***********************************************************
 
-  //right stick comparison
-  if(stick_rx > 127 + 20 && BTN_LEFT == button_released)
-  {
-    //considered as right 
-    sprintf(tmp_bf, "RIGHT=%d",stick_rx);
-    cmd_ptr = tmp_bf;
-    memset(Buff, 0, sizeof(Buff));
-    strcat(Buff, cmd_ptr);
-    cmd_ptr = Buff;
-    BTN_RIGHT = button_pressed;
-  }
-  else if(stick_rx < 127 - 20 && BTN_RIGHT == button_released)
-  { 
-    //considered as left
-    sprintf(tmp_bf, "LEFT=%d",stick_rx);
-    cmd_ptr = tmp_bf;
-    memset(Buff, 0, sizeof(Buff));
-    strcat(Buff, cmd_ptr);
-    cmd_ptr = Buff;
-    BTN_LEFT = button_pressed;
-  }
-  else if(stick_ry < 127 - 20)
-  {
-    //considered as down
-    
-  }
-  else if(stick_ry > 127 + 20)
-  {
-    //considered as up
-    
-  }
-  else
-  {
-    if(BTN_RIGHT == button_pressed)
-    {
-      BTN_RIGHT = button_released;
-      sprintf(tmp_bf, "_RIGHT");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-    if(BTN_LEFT == button_pressed)
-    {
-      BTN_LEFT = button_released;
-      sprintf(tmp_bf, "_LEFT");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-  }
-  
-//******************** Lift & Downer Forks ********************
-  // if(remote.NewButtonState())
-  // {
-
-     if(remote.Button(CMD_LIFTL) && BTN_DOWN == button_released           &&
-                                    BTN_FORWARD == button_released        &&
-                                    BTN_BACKWARD == button_released       &&
-                                    BTN_RIGHT == button_released          &&
-                                    BTN_LEFT == button_released           )
-    {
-      BTN_UP = button_pressed;
-      sprintf(tmp_bf, "UP");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-      
-    }
-    else if(remote.ButtonReleased(CMD_LIFTL))
-    {
-      BTN_UP = button_released;
-      sprintf(tmp_bf, "_UP");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-
-    else if(remote.Button(CMD_DOWNL)  && BTN_UP == button_released          &&
-                                    BTN_FORWARD == button_released          &&
-                                    BTN_BACKWARD == button_released         &&
-                                    BTN_RIGHT == button_released            &&
-                                    BTN_LEFT == button_released             )
-    {
-      BTN_DOWN = button_pressed;
-      sprintf(tmp_bf, "DOWN");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-    else if(remote.ButtonReleased(CMD_DOWNL))
-    {
-      BTN_DOWN = button_released;
-      sprintf(tmp_bf, "_DOWN");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
- //************************   
-     if(remote.Button(CMD_LIFTR) && BTN_DOWN == button_released)
-    {
-      BTN_UP = button_pressed;
-      sprintf(tmp_bf, "UP");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-    else if(remote.ButtonReleased(CMD_LIFTR))
-    {
-      BTN_UP = button_released;
-      sprintf(tmp_bf, "_UP");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-
-    else if(remote.Button(CMD_DOWNR)  && BTN_UP == button_released)
-    {
-      BTN_DOWN = button_pressed;
-      sprintf(tmp_bf, "DOWN");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
-    else if(remote.ButtonReleased(CMD_DOWNR))
-    {
-      BTN_DOWN = button_released;
-      sprintf(tmp_bf, "_DOWN");
-      cmd_ptr = tmp_bf;
-      memset(Buff, 0, sizeof(Buff));
-      strcat(Buff, cmd_ptr);
-      cmd_ptr = Buff;
-    }
 //*************************************************************
-    //clockwise rotation
+	//clockwise rotation
 /*    else if(remote.Button(CMD_ROT_CLW)
-    && BTN_FORWARD == button_released
-    && BTN_BACKWARD == button_released
-    && BTN_RIGHT == button_released
-    && BTN_LEFT == button_released
-    && BTN_ROT_CCW == button_released
-    ) 
-    {
-      BTN_ROT_CLW = button_pressed;
-      cmd_ptr = "ROT_CLW";
-    }
-    else if(remote.ButtonReleased(CMD_ROT_CLW))
-    {
-      BTN_ROT_CLW = button_released;
-      cmd_ptr = "_ROT_CLW";
-    }
+	&& BTN_FORWARD == button_released
+	&& BTN_BACKWARD == button_released
+	&& BTN_RIGHT == button_released
+	&& BTN_LEFT == button_released
+	&& BTN_ROT_CCW == button_released
+	) 
+	{
+	  BTN_ROT_CLW = button_pressed;
+	  cmd_ptr = "ROT_CLW";
+	}
+	else if(remote.ButtonReleased(CMD_ROT_CLW))
+	{
+	  BTN_ROT_CLW = button_released;
+	  cmd_ptr = "_ROT_CLW";
+	}
 */
 //    //counter clockwise rotation
 //    else if(remote.Button(CMD_ROT_CCW)
@@ -419,98 +234,267 @@ void loop()
 //      BTN_ROT_CCW = button_released;
 //      cmd_ptr = "_ROT_CCW";
 //    }
+//***************************************************
+//*********************** Proxy RESET ***************************
+	if(remote.Button(CMD_PROXY))
+	 {
+	   BTN_SQUARE = button_pressed;
+	   cmd_ptr = "PROXY";
+	 }
+	 else if(remote.ButtonReleased(CMD_PROXY))
+	 {
+	   BTN_SQUARE = button_released;
+	   cmd_ptr = "_PROXY";
+	 }
+	//horn
+	if(remote.Button(CMD_HRN))
+	{
+	  //BTN_DOWN = button_pressed;
+	  BTN_CIRCLE = button_pressed;
+	  
+	  strcat(Buff, "HORN");
+	  cmd_ptr = Buff;
+	}
+	else if(remote.ButtonReleased(CMD_HRN))
+	{
+	  //BTN_DOWN = button_released;
+	  BTN_CIRCLE = button_released;
+	 	
+		strcat(Buff, "_HORN");
+		cmd_ptr = Buff;
+	}
+	
+	//******************** Lift & Downer Forks ********************
+  // if(remote.NewButtonState())
+  // {
+	 if(remote.Button(CMD_LIFTL) && BTN_DOWN == button_released)
+	{
+	  BTN_UP = button_pressed;
+	 	strcat(Buff, "UP");
+		cmd_ptr = Buff;
+	}
+	else if(remote.ButtonReleased(CMD_LIFTL))
+	{
+	  BTN_UP = button_released;
+	  
+	  	strcat(Buff, "_UP");
+		cmd_ptr = Buff;
+	}
+
+	else if(remote.Button(CMD_DOWNL)  && BTN_UP == button_released)
+	{
+	  BTN_DOWN = button_pressed;
+	  strcat(Buff, "DOWN");
+		cmd_ptr = Buff;
+	}
+	else if(remote.ButtonReleased(CMD_DOWNL))
+	{
+	  BTN_DOWN = button_released;
+	 	  strcat(Buff, "_DOWN");
+		cmd_ptr = Buff;
+	}
+ //************************   
+	 if(remote.Button(CMD_LIFTR) && BTN_DOWN == button_released)
+	{
+	  BTN_UP = button_pressed;
+	  strcat(Buff, "UP");
+		cmd_ptr = Buff;
+	}
+	else if(remote.ButtonReleased(CMD_LIFTR))
+	{
+	  BTN_UP = button_released;
+	  strcat(Buff, "_UP");
+		cmd_ptr = Buff;
+	}
+
+	else if(remote.Button(CMD_DOWNR)  && BTN_UP == button_released)
+	{
+	  BTN_DOWN = button_pressed;
+	  strcat(Buff, "DOWN");
+		cmd_ptr = Buff;
+	  
+	}
+	else if(remote.ButtonReleased(CMD_DOWNR))
+	{
+	  BTN_DOWN = button_released;
+	  strcat(Buff, "_DOWN");
+		cmd_ptr = Buff;
+	}
+	
+	//left stick comparison ****************************
+//  if(stick_lx > 127 + 20)
+//  {
+//    //considered as right 
+//  }
+//  else if(stick_lx < 127 - 20)
+//  {
+//    //considered as left
+//  }
+  if(stick_ly < 127 - 20 && BTN_BACKWARD == button_released)
+  {
+	//considered as up
+	  sprintf(tmp_bf, "FORWARD=%d",stick_ly/2);
+	
+	
+	strcat(Buff, tmp_bf);
+	cmd_ptr = Buff;
+	BTN_FORWARD = button_pressed;
+  }
+  else if(stick_ly > 127 + 20 && BTN_FORWARD == button_released)
+  {
+	//considered as down
+	sprintf(tmp_bf, "BACKWARD=%d",stick_ly/2);
+	
+	
+	strcat(Buff, tmp_bf);
+	cmd_ptr = Buff; 
+	BTN_BACKWARD = button_pressed;
+  }
+  else
+  {
+	if(BTN_BACKWARD == button_pressed)
+	{
+	  BTN_BACKWARD = button_released;
+	  sprintf(tmp_bf, "_BACKWARD");
+	  
+	  
+	  strcat(Buff, tmp_bf);
+	  cmd_ptr = Buff;
+	}
+	if(BTN_FORWARD == button_pressed)
+	{
+	  BTN_FORWARD = button_released;
+	  sprintf(tmp_bf, "_FORWARD");
+	  
+	  
+	  strcat(Buff, tmp_bf);
+	  cmd_ptr = Buff;
+	}
+  }
+  
+  //***********************************************************
+
+  //right stick comparison
+  if(stick_rx > 127 + 20 && BTN_LEFT == button_released)
+  {
+	//considered as right 
+	sprintf(tmp_bf, "RIGHT=%d",stick_rx);
+	
+	
+	strcat(Buff, tmp_bf);
+	cmd_ptr = Buff;
+	BTN_RIGHT = button_pressed;
+  }
+  else if(stick_rx < 127 - 20 && BTN_RIGHT == button_released)
+  { 
+	//considered as left
+	 sprintf(tmp_bf, "LEFT=%d",stick_rx);
+	
+	
+	strcat(Buff, tmp_bf);
+	cmd_ptr = Buff;
+	BTN_LEFT = button_pressed;
+  }
+  /*
+  else if(stick_ry < 127 - 20)
+  {
+	//considered as down
+	
+  }
+  else if(stick_ry > 127 + 20)
+  {
+	//considered as up
+	
+  }
+  */
+  else
+  {
+	if(BTN_RIGHT == button_pressed)
+	{
+	  BTN_RIGHT = button_released;
+	  strcat(Buff, "_RIGHT");
+		cmd_ptr = Buff;
+	}
+	if(BTN_LEFT == button_pressed)
+	{
+	  BTN_LEFT = button_released;
+	  strcat(Buff, "_LEFT");
+		cmd_ptr = Buff;
+	}
+  }
+  
+//************************ STOP ***********************
+	//stop button
+	if(remote.Button(CMD_STP))
+	{
+	  BTN_DOWN = button_pressed;
+	  cmd_ptr = "STOP";
+	}
+	else if(remote.ButtonReleased(CMD_STP))
+	{
+	  BTN_DOWN = button_released;
+	  cmd_ptr = "_STOP";
+	}
+	
+//******************************************************
+	// else if(remote.Button(CMD_LEFT))
+	// {
+	//   BTN_LEFT = button_pressed;
+	//   cmd_ptr = "LEFT";
+	// }
+	// else if(remote.ButtonReleased(CMD_LEFT))
+	// {
+	//   BTN_LEFT = button_released;
+	//   cmd_ptr = "_LEFT";
+	// }
+	// else if(remote.Button(CMD_RIGHT))
+	// {
+	//   BTN_RIGHT = button_pressed;
+	//   cmd_ptr = "RIGHT";
+	// }
+	// else if(remote.ButtonReleased(CMD_RIGHT))
+	// {
+	//   BTN_RIGHT = button_released;
+	//   cmd_ptr = "_RIGHT";
+	// }
 
 //**************************** MOVEMENT ****************************
-    
-    //  else if(remote.Button(CMD_FORWARD))
-    //  {
-    //    BTN_FORWARD = button_pressed;
-    //    cmd_ptr = "FORWARD";
-    //  }
-    
-    //  else if(remote.ButtonReleased(CMD_FORWARD))
-    //  {
-    //    BTN_FORWARD = button_released;
-    //    cmd_ptr = "_FORWARD";
-    //  }
+	
+	//  else if(remote.Button(CMD_FORWARD))
+	//  {
+	//    BTN_FORWARD = button_pressed;
+	//    cmd_ptr = "FORWARD";
+	//  }
+	
+	//  else if(remote.ButtonReleased(CMD_FORWARD))
+	//  {
+	//    BTN_FORWARD = button_released;
+	//    cmd_ptr = "_FORWARD";
+	//  }
 
-    //  else if(remote.Button(CMD_BACKWARD))
-    //  {
-    //    BTN_BACKWARD = button_pressed;
-    //    cmd_ptr = "BACKWARD";
-    //  }
-    //  else if(remote.ButtonReleased(CMD_BACKWARD))
-    //  {
-    //    BTN_BACKWARD = button_released;
-    //    cmd_ptr = "_BACKWARD";
-    //  }
-  
-//***************************************************
-    //horn
-    else if(remote.Button(CMD_HRN))
-    {
-      //BTN_DOWN = button_pressed;
-      BTN_CIRCLE = button_pressed;
-      sprintf(Buff, "HORN");
-      cmd_ptr = Buff;
-    }
-    else if(remote.ButtonReleased(CMD_HRN))
-    {
-      //BTN_DOWN = button_released;
-      BTN_CIRCLE = button_released;
-      sprintf(Buff, "_HORN");
-      cmd_ptr = Buff;
-    }
-//************************ STOP ***********************
-    //stop button
-    if(remote.Button(CMD_STP))
-    {
-      BTN_DOWN = button_pressed;
-      sprintf(Buff, "STOP");
-      cmd_ptr = Buff;
-    }
-    else if(remote.ButtonReleased(CMD_STP))
-    {
-      BTN_DOWN = button_released;
-      sprintf(Buff, "_STOP");
-      cmd_ptr = Buff;
-    }
-    
-//*****************************************************
-
-    // else if(remote.Button(CMD_LEFT))
-    // {
-    //   BTN_LEFT = button_pressed;
-    //   cmd_ptr = "LEFT";
-    // }
-    // else if(remote.ButtonReleased(CMD_LEFT))
-    // {
-    //   BTN_LEFT = button_released;
-    //   cmd_ptr = "_LEFT";
-    // }
-    // else if(remote.Button(CMD_RIGHT))
-    // {
-    //   BTN_RIGHT = button_pressed;
-    //   cmd_ptr = "RIGHT";
-    // }
-    // else if(remote.ButtonReleased(CMD_RIGHT))
-    // {
-    //   BTN_RIGHT = button_released;
-    //   cmd_ptr = "_RIGHT";
-    // }
+	//  else if(remote.Button(CMD_BACKWARD))
+	//  {
+	//    BTN_BACKWARD = button_pressed;
+	//    cmd_ptr = "BACKWARD";
+	//  }
+	//  else if(remote.ButtonReleased(CMD_BACKWARD))
+	//  {
+	//    BTN_BACKWARD = button_released;
+	//    cmd_ptr = "_BACKWARD";
+	//  }
 
 //*****************************************************************
 
-    // make the packet ready
-    // else
-    // {
-    //   Serial.println("undefined key pressed");
-    //   goto Start;
-    // }
-        
+	// make the packet ready
+	// else
+	// {
+	//   Serial.println("undefined key pressed");
+	//   goto Start;
+	// }
+		
   // }
   
   if(cmd_ptr != '\0')
-    send_packet(&cmd_ptr);
+	send_packet(&cmd_ptr);
   
 }
